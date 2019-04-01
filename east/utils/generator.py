@@ -61,7 +61,7 @@ def shrink_polygon(poly):
     return poly
 
 
-def horizontal_flip(image, polygons):
+def image_flip(image, polygons):
     """
     水平翻转图像和标注
     :param image: [h,w,c]
@@ -77,7 +77,7 @@ def horizontal_flip(image, polygons):
     return image[:, ::-1, :], polygons
 
 
-def random_crop(image, polygons):
+def image_crop(image, polygons):
     """
     随机裁剪
     :param image: [h,w,c]
@@ -148,14 +148,15 @@ class Generator(object):
         self.annotation_list = annotation_list
         self.batch_size = batch_size
         self.min_text_size = min_text_size
-        self.horizontal_flip = False
-        self.random_crop = False
+        self.horizontal_flip = horizontal_flip
+        self.random_crop = random_crop
         self.size = len(annotation_list)
         super(Generator, self).__init__(**kwargs)
 
     def gen(self):
         h, w = list(self.input_shape)[:2]
         while True:
+            images = np.zeros((self.batch_size, h, w, 3), dtype=np.float32)
             score_map = np.zeros((self.batch_size, h, w), dtype=np.uint8)  # 是否为文本区域
             geo_map = np.zeros((self.batch_size, h, w, 5), dtype=np.float32)  # rbox 4边距离和角度
             mask = np.ones((self.batch_size, h, w), dtype=np.uint8)  # 是否参与训练
@@ -167,19 +168,19 @@ class Generator(object):
                 polygons = self.annotation_list[i]['polygons']
                 # 数据增广:水平翻转、随机裁剪
                 if self.horizontal_flip and random.random() > 0.5:
-                    image, polygons = horizontal_flip(image, polygons)
+                    image, polygons = image_flip(image, polygons)
                 if self.random_crop and random.random() > 0.5:
-                    image, polygons = random_crop(image, polygons)
+                    image, polygons = image_crop(image, polygons)
 
                 # resize图像
-                image, image_meta, polygons = image_utils.resize_image_and_gt(image, h, polygons)
+                images[i], image_meta, polygons = image_utils.resize_image_and_gt(image, h, polygons)
                 # 生成score_map和geo_map
                 score_map[i], geo_map[i], mask[i] = gen_gt(h,
                                                            w,
                                                            polygons,
                                                            self.min_text_size)
 
-            yield {"input_image": image,
+            yield {"input_image": images,
                    "input_score": score_map,
                    "input_geo": geo_map,
                    "input_mask": mask}
