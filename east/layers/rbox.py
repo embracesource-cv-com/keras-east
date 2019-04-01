@@ -17,7 +17,7 @@ def dist_to_box(distances, angles):
     x′=xcosθ−ysinθ
     y′=xsinθ+ycosθ
     :param distances: [batch_size,H,W,(dist_top,dist_right,dist_bottom,dist_left)]
-    :param angles: [batch_size,H,W]
+    :param angles: [batch_size,H,W,1]
     :return:
     """
     # lt,rt,rb,lb
@@ -31,6 +31,7 @@ def dist_to_box(distances, angles):
                   distances[..., 2],
                   distances[..., 2]], axis=-1)  # [batch_size,H,W,4]
     # 角度约束到0~90
+    angles = angles[..., 0]  # 去除最后一维
     angles = tf.where(tf.less(angles, 0.), tf.zeros_like(angles), angles)
     angles = tf.where(tf.greater(angles, np.pi / 2.),
                       tf.ones_like(angles) * (np.pi / 2.), angles)
