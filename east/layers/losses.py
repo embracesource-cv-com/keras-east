@@ -10,11 +10,12 @@ Created on 2019/3/31 上午9:45
 import tensorflow as tf
 
 
-def iou_loss(y_true, y_pred, mask):
+def iou_loss(y_true, y_pred, y_score, mask):
     """
     iou损失函数   -log(iou)
     :param y_true: [batch_size,H,W,(dist_top,dist_right,dist_bottom,dist_left)]
     :param y_pred: [batch_size,H,W,(dist_top,dist_right,dist_bottom,dist_left)]
+    :param y_score: [batch_size,H,W] 正负样本标志，1-文本区域，0-背景
     :param mask: [batch_size,H,W] 是否参与训练，1-参与，0-不参与
     :return:
     """
@@ -29,19 +30,22 @@ def iou_loss(y_true, y_pred, mask):
     union = area_true + area_pred - overlap
     iou = overlap / union
     # 只处理参与训练的部分
+    mask = y_score * mask  # 正样本计算损失
     iou = tf.boolean_mask(iou, tf.cast(mask, tf.bool))
     return -tf.log(iou)
 
 
-def angle_loss(y_true, y_pred, mask):
+def angle_loss(y_true, y_pred, y_score, mask):
     """
     角度损失函数 1-cosine(y_pred-y_true)
     :param y_true: [batch_size,H,W]
-    :param y_pred: [batch_size,H,W]
+    :param y_pred: [batch_size,H,W,1] 这里多了一维
+    :param y_score: [batch_size,H,W] 正负样本标志，1-文本区域，0-背景
     :param mask: [batch_size,H,W] 是否参与训练，1-参与，0-不参与
     :return:
     """
-    loss = 1. - tf.cos(y_pred - y_true)
+    loss = 1. - tf.cos(y_pred[..., 0] - y_true)
+    mask = y_score * mask  # 正样本计算损失
     return tf.boolean_mask(loss, tf.cast(mask, tf.bool))
 
 
@@ -49,13 +53,13 @@ def balanced_cross_entropy(y_true, logits, mask):
     """
     平衡交叉熵
     :param y_true: [batch_size,H,W] 1-文本，0-非文本
-    :param logits: [batch_size,H,W] 预测文本得分
+    :param logits: [batch_size,H,W,1] 预测文本得分,预测的多了一维
     :param mask: [batch_size,H,W] 是否参与训练，1-参与，0-不参与
     :return:
     """
     mask = tf.cast(mask, tf.bool)
     y_true = tf.boolean_mask(y_true, mask)
-    logits = tf.boolean_mask(logits, mask)
+    logits = tf.boolean_mask(logits[..., 0], mask)
 
     # 统计正负样本数
     pos_num = tf.minimum(tf.reduce_sum(y_true), 1.)  # 平滑
