@@ -60,12 +60,28 @@ def shrink_polygon(poly):
     return poly
 
 
+def horizontal_flip(image, polygons):
+    """
+    水平翻转图像和标注
+    :param image: [h,w,c]
+    :param polygons: [n,4,(x,y)]；第一个顶点为左上角，顺时针排列
+    :return:
+    """
+    # gt翻转
+    if polygons is not None and polygons.shape[0] > 0:
+        polygons[:, :, 0] = image.shape[1] - polygons[:, :, 0]  # x坐标关于图像中心对称x+x'=w
+        # 左右位置互换,新的顺序为[1,0,3,2]
+        polygons = np.stack([polygons[:, 1], polygons[:, 0], polygons[:, 3], polygons[:, 2]], axis=1)
+
+    return image[:, ::-1, :], polygons
+
+
 def gen_gt(h, w, polygons, min_text_size):
     """
     生成单个GT
     :param h: 输入高度
     :param w: 输入宽度
-    :param polygons: 文本区域多边形[n,4]
+    :param polygons: 文本区域多边形[n,4,(x,y)]
     :param min_text_size: 文本区域最小边长
     :return: score_map, geo_map, mask
     """
@@ -96,18 +112,25 @@ def gen_gt(h, w, polygons, min_text_size):
 
 
 class Generator(object):
-    def __init__(self, input_shape, annotation_list, batch_size, min_text_size, **kwargs):
+    def __init__(self, input_shape, annotation_list, batch_size, min_text_size,
+                 horizontal_flip=False, random_crop=False,
+                 **kwargs):
         """
 
-        :param h:
-        :param w:
-        :param annotation_list:
+        :param input_shape:
+        :param annotation_list:  # numpy数组[n,4,(x,y)]的集合
+        :param batch_size:
+        :param min_text_size:
+        :param horizontal_flip:
+        :param random_crop:
         :param kwargs:
         """
         self.input_shape = input_shape
         self.annotation_list = annotation_list
         self.batch_size = batch_size
         self.min_text_size = min_text_size
+        self.horizontal_flip = False
+        self.random_crop = False
         self.size = len(annotation_list)
         super(Generator, self).__init__(**kwargs)
 
@@ -129,3 +152,13 @@ class Generator(object):
                    "input_score": score_map,
                    "input_geo": geo_map,
                    "input_mask": mask}
+
+
+def main():
+    xs = [np.random.randn(3, 2) for i in range(4)]
+    y = np.stack(xs, axis=1)
+    print(y.shape)
+
+
+if __name__ == '__main__':
+    main()
