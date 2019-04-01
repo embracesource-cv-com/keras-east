@@ -9,7 +9,8 @@ Created on 2019/3/31 上午11:24
 """
 import numpy as np
 import cv2
-from east.utils import geo_utils
+import random
+from east.utils import geo_utils, image_utils
 
 
 def shrink_poly_edge(poly, rs, edge_index):
@@ -65,7 +66,7 @@ def horizontal_flip(image, polygons):
     水平翻转图像和标注
     :param image: [h,w,c]
     :param polygons: [n,4,(x,y)]；第一个顶点为左上角，顺时针排列
-    :return:
+    :return: 翻转后的图像和标注
     """
     # gt翻转
     if polygons is not None and polygons.shape[0] > 0:
@@ -74,6 +75,24 @@ def horizontal_flip(image, polygons):
         polygons = np.stack([polygons[:, 1], polygons[:, 0], polygons[:, 3], polygons[:, 2]], axis=1)
 
     return image[:, ::-1, :], polygons
+
+
+def random_crop(image, polygons):
+    """
+    随机裁剪
+    :param image: [h,w,c]
+    :param polygons: [n,4,(x,y)]；第一个顶点为左上角，顺时针排列
+    :return:  裁剪后的图像和标注
+    """
+    min_x, max_x = np.min(polygons[:, :, 0]), np.max(polygons[:, :, 0])
+    min_y, max_y = np.min(polygons[:, :, 1]), np.max(polygons[:, :, 1])
+    image, crop_window = image_utils.random_crop_image(image, [min_y, min_x, max_y, max_x])
+    # print(image.shape,[min_y, min_x, max_y, max_x],crop_window)
+    # gt坐标偏移
+    if polygons is not None and polygons.shape[0] > 0:
+        polygons[:, :, 0] -= crop_window[0]
+        polygons[:, :, 1] -= crop_window[1]
+    return image, polygons
 
 
 def gen_gt(h, w, polygons, min_text_size):
@@ -143,12 +162,24 @@ class Generator(object):
             # 随机选择
             indices = np.random.choice(self.size, self.batch_size, replace=False)
             for i, index in enumerate(indices):
+                # 加载图像
+                image = image_utils.load_image(self.annotation_list[i]['image_path'])
+                polygons = self.annotation_list[i]['polygons']
+                # 数据增广:水平翻转、随机裁剪
+                if self.horizontal_flip and random.random() > 0.5:
+                    image, polygons = horizontal_flip(image, polygons)
+                if self.random_crop and random.random() > 0.5:
+                    image, polygons = random_crop(image, polygons)
+
+                # resize图像
+                image, image_meta, polygons = image_utils.resize_image_and_gt(image, h, polygons)
+                # 生成score_map和geo_map
                 score_map[i], geo_map[i], mask[i] = gen_gt(h,
                                                            w,
-                                                           self.annotation_list[i]['polygons'],
+                                                           polygons,
                                                            self.min_text_size)
 
-            yield {"input_image": None,
+            yield {"input_image": image,
                    "input_score": score_map,
                    "input_geo": geo_map,
                    "input_mask": mask}
