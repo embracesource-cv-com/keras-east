@@ -182,7 +182,8 @@ class Generator(object):
 
             yield {"input_image": images,
                    "input_score": score_map,
-                   "input_geo": geo_map,
+                   "input_geo_dist": geo_map[..., :4],
+                   "input_geo_angle": geo_map[..., 4],
                    "input_mask": mask}
 
 
