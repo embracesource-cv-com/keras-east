@@ -28,8 +28,9 @@ def shrink_poly_edge(poly, rs, edge_index):
     # 顶点对应的r
     r1, r2 = rs[idx1], rs[idx2]
     # 两边内缩
-    poly[idx1] = geo_utils.point_shift_on_line(p1, p2, r1 * 0.3)
-    poly[idx2] = geo_utils.point_shift_on_line(p2, p1, r2 * 0.3)
+    dist_p1_p2 = np.linalg.norm(p1 - p2)
+    poly[idx1] = geo_utils.point_shift_on_line(p1, p2, min(r1 * 0.3, dist_p1_p2 / 2 - 1))
+    poly[idx2] = geo_utils.point_shift_on_line(p2, p1, min(r2 * 0.3, dist_p1_p2 / 2 - 1))
 
 
 def shrink_polygon(poly):
@@ -113,8 +114,10 @@ def gen_gt(h, w, polygons, min_text_size):
         rect, angle = geo_utils.min_area_rect_and_angle(polygon)
         # 向内收缩多边形
         shrinked_polygon = shrink_polygon(polygon.copy()).astype(np.int32)  # 坐标转为整型
-        cv2.fillPoly(poly_mask, shrinked_polygon, index + 1)  # 第index+1个多边形区域
-        cv2.fillPoly(score_map, shrinked_polygon, 1)  # 正样本
+        # print("h:{},shrinked_polygon:{}".format(h, shrinked_polygon))
+        # pts是多边形列表p.checkVector(2, 4) >= 0 in function cv::fillPoly
+        cv2.fillPoly(poly_mask, [shrinked_polygon], index + 1)  # 第index+1个多边形区域
+        cv2.fillPoly(score_map, [shrinked_polygon], 1)  # 正样本
         # 当前多边形的坐标
         xs, ys = np.where(poly_mask == (index + 1))
         for x, y in zip(xs, ys):
@@ -125,7 +128,7 @@ def gen_gt(h, w, polygons, min_text_size):
         # 过滤太小的文本区域
         dist_edges = [np.linalg.norm(polygon[i] - polygon[(i + 1) % 4]) for i in range(4)]
         if min(dist_edges) < min_text_size:
-            cv2.fillPoly(mask, shrinked_polygon, 0)
+            cv2.fillPoly(mask, [shrinked_polygon], 0)
 
     return score_map, geo_map, mask
 
