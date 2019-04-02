@@ -8,6 +8,7 @@ Created on 2019/3/31 上午9:45
 
 """
 import tensorflow as tf
+import keras
 
 
 def iou_loss(y_true, y_pred, y_score, mask):
@@ -22,16 +23,19 @@ def iou_loss(y_true, y_pred, y_score, mask):
     # 计算交集
     h = tf.minimum(y_true[..., 0], y_pred[..., 0]) + tf.minimum(y_true[..., 2], y_pred[..., 2])
     w = tf.minimum(y_true[..., 1], y_pred[..., 1]) + tf.minimum(y_true[..., 3], y_pred[..., 3])
-    overlap = h * w  # [batch_size,H,W]
+    overlap = tf.maximum(h * w, 0.)  # [batch_size,H,W]
     # 计算R1,R2面积
     area_true = tf.reduce_sum(y_true[..., ::2], axis=-1) * tf.reduce_sum(y_true[..., 1::2], axis=-1)
     area_pred = tf.reduce_sum(y_pred[..., ::2], axis=-1) * tf.reduce_sum(y_pred[..., 1::2], axis=-1)
     # iou
     union = area_true + area_pred - overlap
-    iou = overlap / union
+    iou = (overlap + 1.0) / (union + 1.0)  # 增加平滑
     # 只处理参与训练的部分
     mask = y_score * mask  # 正样本计算损失
     iou = tf.boolean_mask(iou, tf.cast(mask, tf.bool))
+    # 保证iou 在0~1之间; 防止loss 为Nan
+    iou = tf.maximum(keras.backend.epsilon(),
+                     tf.minimum(1.0, iou))
     return -tf.log(iou)
 
 
