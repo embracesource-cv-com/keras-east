@@ -177,10 +177,10 @@ class Generator(object):
                 # 网络输出尺寸是输入的1/4
                 polygons /= 4.
                 # 生成score_map和geo_map
-                score_map[i], geo_map[i], mask[i] = gen_gt(h / 4,
-                                                           w / 4,
+                score_map[i], geo_map[i], mask[i] = gen_gt(h // 4,
+                                                           w // 4,
                                                            polygons,
-                                                           self.min_text_size / 4.)
+                                                           self.min_text_size // 4.)
 
             yield {"input_image": images,
                    "input_score": score_map,
