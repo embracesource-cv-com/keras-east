@@ -158,8 +158,10 @@ class Generator(object):
 
     def gen(self):
         h, w = list(self.input_shape)[:2]
+        # 网络输出尺寸是输入的1/4
+        h, w = h // 4, w // 4
         while True:
-            images = np.zeros((self.batch_size, h, w, 3), dtype=np.float32)
+            images = np.zeros((self.batch_size,) + self.input_shape, dtype=np.float32)
             score_map = np.zeros((self.batch_size, h, w), dtype=np.uint8)  # 是否为文本区域
             geo_map = np.zeros((self.batch_size, h, w, 5), dtype=np.float32)  # rbox 4边距离和角度
             mask = np.ones((self.batch_size, h, w), dtype=np.uint8)  # 是否参与训练
@@ -176,12 +178,11 @@ class Generator(object):
                     image, polygons = image_crop(image, polygons)
 
                 # resize图像
-                images[i], image_meta, polygons = image_utils.resize_image_and_gt(image, h, polygons)
-                # 网络输出尺寸是输入的1/4
-                polygons /= 4.
+                images[i], image_meta, polygons = image_utils.resize_image_and_gt(image, self.input_shape[0], polygons)
                 # 生成score_map和geo_map
-                score_map[i], geo_map[i], mask[i] = gen_gt(h // 4,
-                                                           w // 4,
+                polygons /= 4.
+                score_map[i], geo_map[i], mask[i] = gen_gt(h,
+                                                           w,
                                                            polygons,
                                                            self.min_text_size // 4.)
 
@@ -189,7 +190,7 @@ class Generator(object):
                    "input_score": score_map,
                    "input_geo_dist": geo_map[..., :4],
                    "input_geo_angle": geo_map[..., 4],
-                   "input_mask": mask}
+                   "input_mask": mask}, None
 
 
 def main():
