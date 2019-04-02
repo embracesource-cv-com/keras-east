@@ -21,7 +21,7 @@ def dist_point_to_line(p1, p2, p3):
     :return:
     """
     # 以(p1,p3),(p2,p3)为边的平行四边形面积
-    area = np.cross(p1 - p3, p2 - p3)
+    area = np.abs(np.cross(p1 - p3, p2 - p3))  # 叉积可能为负
     # 点p3到直线(p1,p2)的距离=area除以边(p1,p2)的距离
     dist_p1_p2 = np.linalg.norm(p1 - p2)
     return area / dist_p1_p2
