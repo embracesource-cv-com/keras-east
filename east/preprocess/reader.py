@@ -36,6 +36,6 @@ def load_annotation(annotation_path, image_dir):
         # 左上、右上、右下、左下 四个坐标 如：377,117,463,117,465,130,378,130
         lt_x, lt_y, rt_x, rt_y, rb_x, rb_y, lb_x, lb_y = map(float, line[:8])
         polygons.append(np.array([lt_x, lt_y, rt_x, rt_y, rb_x, rb_y, lb_x, lb_y]).reshape((4, 2)))
-
-    image_annotation["polygons"] = np.asarray(polygons)
+    # 明确float32类型,解决bug error: (-215) total >= 0 && (depth == 5 || depth == 4) in function cv::convexHull
+    image_annotation["polygons"] = np.asarray(polygons, np.float32)
     return image_annotation
