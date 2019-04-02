@@ -20,7 +20,7 @@ from east.preprocess import reader
 
 
 def set_gpu_growth():
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     cfg = tf.ConfigProto()
     cfg.gpu_options.allow_growth = True
     session = tf.Session(config=cfg)
@@ -65,12 +65,11 @@ def main(args):
         m.load_weights(config.PRE_TRAINED_WEIGHT, by_name=True)
     m.summary()
     # 生成器
-
     generator = Generator(config.IMAGE_SHAPE, image_annotations,
                           config.IMAGES_PER_GPU, config.TEXT_MIN_SIZE)
 
     # 训练
-    m.fit_generator(generator.gen,
+    m.fit_generator(generator.gen(),
                     steps_per_epoch=len(image_annotations) // config.IMAGES_PER_GPU,
                     epochs=args.epochs,
                     initial_epoch=args.init_epochs,

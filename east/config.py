@@ -8,7 +8,7 @@
 
 
 class Config(object):
-    IMAGES_PER_GPU = 4
+    IMAGES_PER_GPU = 2
     IMAGE_SHAPE = (800, 800, 3)
     TEXT_MIN_SIZE = 10
 
@@ -21,8 +21,8 @@ class Config(object):
 
     LOSS_WEIGHTS = {
         "score_loss": 1.,
-        "dist_loss": 1,
-        "angle_loss": 1
+        "dist_loss": 1.,
+        "angle_loss": 10.
     }
 
     # 预训练模型
