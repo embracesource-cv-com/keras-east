@@ -70,7 +70,7 @@ def balanced_cross_entropy(y_true, logits, mask):
                        tf.ones_like(y_true) * neg_num / total,
                        tf.ones_like(y_true) * pos_num / total)
     # 计算损失函数
-    loss = tf.nn.sigmoid_cross_entropy_with_logits(y_true, logits)
+    loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=y_true, logits=logits)
     loss = loss * weights
 
     return loss
