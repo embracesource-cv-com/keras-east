@@ -58,7 +58,7 @@ def east(features):
     # 预测距离
     predict_geo_dist = layers.Conv2D(4, (1, 1), name='predict_geo_dist')(x)
     # 预测角度
-    predict_geo_angle = layers.Conv2D(1, (1, 1), name='predict_geo_dist')(x)
+    predict_geo_angle = layers.Conv2D(1, (1, 1), name='predict_geo_angle')(x)
 
     return predict_score, predict_geo_dist, predict_geo_angle
 
@@ -86,7 +86,7 @@ def east_net(config, stage='train'):
         geo_angle_loss = layers.Lambda(lambda x: angle_loss(*x), name='angle_loss')(
             [input_geo_angle, predict_geo_angle, input_score_map, input_mask])
 
-        return Model(inputs=[input_image, input_score_map, input_geo_dist, input_geo_dist, input_mask],
+        return Model(inputs=[input_image, input_score_map, input_geo_dist, input_geo_angle, input_mask],
                      outputs=[score_loss, geo_dist_loss, geo_angle_loss])
     else:
         # 距离和角度转为顶点坐标
