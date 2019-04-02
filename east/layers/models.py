@@ -56,7 +56,7 @@ def east(features):
     # 预测得分
     predict_score = layers.Conv2D(1, (1, 1), name='predict_score_map')(x)
     # 预测距离
-    predict_geo_dist = layers.Conv2D(4, (1, 1), name='predict_geo_dist')(x)
+    predict_geo_dist = layers.Conv2D(4, (1, 1), activation='relu', name='predict_geo_dist')(x)  # 距离必须大于零
     # 预测角度
     predict_geo_angle = layers.Conv2D(1, (1, 1), name='predict_geo_angle')(x)
 
