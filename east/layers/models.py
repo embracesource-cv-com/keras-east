@@ -66,6 +66,7 @@ def east(features):
 def east_net(config, stage='train'):
     # 输入
     h, w = list(config.IMAGE_SHAPE)[:2]
+    h, w = h / 4, w / 4
     input_image = Input(shape=config.IMAGE_SHAPE, name='input_image')
     input_score_map = Input(shape=(h, w), name='input_score')
     input_geo_dist = Input(shape=(h, w, 4), name='input_geo_dist')  # rbox 4个边距离
