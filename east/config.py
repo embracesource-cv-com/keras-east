@@ -9,7 +9,8 @@
 
 class Config(object):
     IMAGES_PER_GPU = 4
-    IMAGE_SHAPE = (720, 720, 3)
+    IMAGE_SHAPE = (800, 800, 3)
+    TEXT_MIN_SIZE = 10
 
     # 训练超参数
     LEARNING_RATE = 0.01
