@@ -91,8 +91,8 @@ def image_crop(image, polygons):
     # print(image.shape,[min_y, min_x, max_y, max_x],crop_window)
     # gt坐标偏移
     if polygons is not None and polygons.shape[0] > 0:
-        polygons[:, :, 0] -= crop_window[0]
-        polygons[:, :, 1] -= crop_window[1]
+        polygons[:, :, 0] -= crop_window[1]  # x
+        polygons[:, :, 1] -= crop_window[0]  # y
     return image, polygons
 
 
@@ -170,7 +170,7 @@ class Generator(object):
             for i, index in enumerate(indices):
                 # 加载图像
                 image = image_utils.load_image(self.annotation_list[i]['image_path'])
-                polygons = self.annotation_list[i]['polygons']
+                polygons = self.annotation_list[i]['polygons'].copy()
                 # 数据增广:水平翻转、随机裁剪
                 if self.horizontal_flip and random.random() > 0.5:
                     image, polygons = image_flip(image, polygons)
