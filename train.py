@@ -32,7 +32,7 @@ def get_call_back():
     定义call back
     :return:
     """
-    checkpoint = ModelCheckpoint(filepath='/tmp/ctpn.{epoch:03d}.h5',
+    checkpoint = ModelCheckpoint(filepath='/tmp/east.{epoch:03d}.h5',
                                  monitor='acc',
                                  verbose=1,
                                  save_best_only=False,
