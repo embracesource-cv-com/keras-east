@@ -222,17 +222,17 @@ def recover_detect_boxes(boxes, window, scale):
     return boxes
 
 
-def recover_detect_quad(boxes, window, scale):
+def recover_detect_polygons(polygons, window, scale):
     """
     将检测四边形映射到原始图像上，去除padding和缩放
-    :param boxes: numpy数组，[n,(x1,y1,x2,y2,x3,y3,x4,y4)]
+    :param polygons: numpy数组，[n,4,(x,y)]
     :param window: [(y1,x1,y2,x2)]
     :param scale: 标量
     :return:
     """
     # 去除padding
-    boxes[:, 1::2] -= window[0]  # 高度
-    boxes[:, 0::2] -= window[1]  # 宽度
+    polygons[:, 1::2] -= window[0]  # 高度
+    polygons[:, 0::2] -= window[1]  # 宽度
     # 还原缩放
-    boxes /= scale
-    return boxes
+    polygons /= scale
+    return polygons
