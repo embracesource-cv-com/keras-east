@@ -134,7 +134,7 @@ def gen_gt(h, w, polygons, min_text_size):
 
 
 class Generator(object):
-    def __init__(self, input_shape, annotation_list, batch_size, min_text_size,
+    def __init__(self, input_shape, annotation_list=None, batch_size=1, min_text_size=10,
                  horizontal_flip=False, random_crop=False,
                  **kwargs):
         """
@@ -193,6 +193,37 @@ class Generator(object):
                    "input_geo_dist": geo_map[..., :4],
                    "input_geo_angle": geo_map[..., 4],
                    "input_mask": mask}, None
+
+
+class EvaluateGenerator(object):
+    """
+    评估生成器
+    """
+
+    def __init__(self, input_shape, image_path_list):
+        """
+
+        :param input_shape: [H,W,3]
+        :param image_path_list: 评估图像路径列表
+        """
+        self.input_shape = input_shape
+        self.image_path_list = image_path_list
+
+    def gen(self):
+        """
+        评估生成器
+        :return:
+        """
+        for idx, image_info in enumerate(self.image_path_list):
+            # 加载图像
+            image = image_utils.load_image(self.image_path_list[idx])
+            image, image_meta, _ = image_utils.resize_image_and_gt(image,
+                                                                   self.input_shape[0])
+
+            if idx % 200 == 0:
+                print("开始预测:{}张图像".format(idx))
+            yield {"input_image": np.asarray([image]),
+                   "input_image_meta": np.asarray([image_meta])}
 
 
 def main():
