@@ -72,6 +72,7 @@ def east_net(config, stage='train'):
     input_geo_dist = Input(shape=(h, w, 4), name='input_geo_dist')  # rbox 4个边距离
     input_geo_angle = Input(shape=(h, w), name='input_geo_angle')  # rbox 角度
     input_mask = Input(shape=(h, w), name='input_mask')
+    input_image_meta = Input(shape=(12,), name='input_image_meta')
 
     # 网络
     features = resnet50(input_image)
@@ -91,7 +92,10 @@ def east_net(config, stage='train'):
     else:
         # 距离和角度转为顶点坐标
         vertex = layers.Lambda(lambda x: dist_to_box(*x))([predict_geo_dist, predict_geo_angle])
-        return Model(inputs=input_image, outputs=[predict_score, vertex])
+        # dual image_meta
+        image_meta = layers.Lambda(lambda x: tf.identity(x))(input_image_meta)  # 原因返回
+        return Model(inputs=[input_image, input_image_meta],
+                     outputs=[predict_score, vertex, image_meta])
 
 
 def compile(keras_model, config, loss_names=[]):
