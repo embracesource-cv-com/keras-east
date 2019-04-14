@@ -160,6 +160,8 @@ class Generator(object):
         h, w = list(self.input_shape)[:2]
         # 网络输出尺寸是输入的1/4
         h, w = h // 4, w // 4
+
+        np.random.shuffle(self.annotation_list)
         while True:
             images = np.zeros((self.batch_size,) + self.input_shape, dtype=np.float32)
             score_map = np.zeros((self.batch_size, h, w), dtype=np.uint8)  # 是否为文本区域
