@@ -69,9 +69,9 @@ def poly_weighted_merge(poly_a, poly_b, score_a, score_b):
 def locale_aware_nms(polygons, scores, threshold=0.3):
     """
     locale aware nms
-    :param polygons:
-    :param scores:
-    :param threshold:
+    :param polygons: [n,4,(x,y)]
+    :param scores: [n]
+    :param threshold: iou阈值,大于阈值就合并多边形
     :return:
     """
     keep_polygons = []
