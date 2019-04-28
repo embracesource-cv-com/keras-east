@@ -47,7 +47,7 @@ def nms(polygons, scores, iou_threshold=0.3):
         keep_indices.append(order_indices[0])  # 保留当前分值最大的polygon
         # 计算当前polygon与其他所有polygon的iou值
         ious = [poly_iou(polygons[order_indices[0]], polygons[i]) for i in order_indices[1:]]
-        order_indices = order_indices[1:][np.array(ious) >= iou_threshold]
+        order_indices = order_indices[1:][np.array(ious) < iou_threshold]
     # 返回保留的索引号
     return polygons[keep_indices], scores[keep_indices]
 
