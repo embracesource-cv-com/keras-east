@@ -17,6 +17,7 @@ from east.utils.generator import EvaluateGenerator
 from east.config import cur_config as config
 from east.layers import models
 import datetime
+import lanms
 
 
 def main(args):
@@ -27,7 +28,7 @@ def main(args):
     config.IMAGES_PER_GPU = 1
     # config.IMAGE_SHAPE = (1024, 1024, 3)
     # 图像路径
-    image_path_list = file_utils.get_sub_files(args.image_dir)
+    image_path_list = file_utils.get_sub_files(args.image_dir)[:50]
 
     # 加载模型
     m = models.east_net(config, 'test')
@@ -53,8 +54,12 @@ def main(args):
                                 np.reshape(predict_scores, (size, -1)),
                                 image_metas['window'],
                                 image_metas['scale']):
-        polygons, scores = common_utils.locale_aware_nms(np.reshape(p, (-1, 4, 2)),
-                                                         np.reshape(s, (-1,)), 0.3)  # nms'
+        # polygons, scores = common_utils.locale_aware_nms(np.reshape(p, (-1, 4, 2)),
+        #                                                  np.reshape(s, (-1,)), 0.3)  # nms'
+        polys = lanms.merge_quadrangle_n9(np.concatenate([np.reshape(p, (-1, 8)),
+                                                          s[:, np.newaxis]], axis=1), 0.3)
+        polygons = np.reshape(polys[:, :8], (-1, 4, 2))
+        scores = polys[:, 8]
         polygons *= 4  # 转为网络输入的大小
         # 还原检测边框到原图
         polygons = image_utils.recover_detect_polygons(polygons, win, scale)
