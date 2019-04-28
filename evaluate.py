@@ -49,14 +49,15 @@ def main(args):
     size = len(image_path_list)
     polygons_list = []
     scores_list = []
-    for p, s, m in zip(np.reshape(predict_polygons, (size, -1, 4, 2)),
-                       np.reshape(predict_scores, (size, -1)),
-                       image_metas):
+    for p, s, win, scale in zip(np.reshape(predict_polygons, (size, -1, 4, 2)),
+                                np.reshape(predict_scores, (size, -1)),
+                                image_metas['window'],
+                                image_metas['scale']):
         polygons, scores = common_utils.locale_aware_nms(np.reshape(p, (-1, 4, 2)),
-                                                         np.reshape(s, (-1)), 0.3)  # nms'
+                                                         np.reshape(s, (-1,)), 0.3)  # nms'
         polygons *= 4  # 转为网络输入的大小
         # 还原检测边框到原图
-        polygons = image_utils.recover_detect_polygons(polygons, m['window'], m['scale'])
+        polygons = image_utils.recover_detect_polygons(polygons, win, scale)
 
         polygons_list.append(polygons)
         scores_list.append(scores)
