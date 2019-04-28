@@ -80,7 +80,7 @@ def locale_aware_nms(polygons, scores, threshold=0.3):
     p_score = None
     for g, g_score in zip(polygons, scores):
         if p is not None and poly_iou(g, p) > threshold:
-            p = poly_weighted_merge(g, p)
+            p = poly_weighted_merge(g, p, g_score, p_score)
         else:
             if p is not None:
                 keep_polygons.append(p)

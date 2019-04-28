@@ -20,6 +20,7 @@ import datetime
 
 
 def main(args):
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     # 覆盖参数
     if args.weight_path is not None:
         config.WEIGHT_PATH = args.weight_path
@@ -34,7 +35,7 @@ def main(args):
 
     # 预测
     start_time = datetime.datetime.now()
-    gen = EvaluateGenerator(config.IMAGE_INPUT_SHAPE, image_path_list)
+    gen = EvaluateGenerator(config.IMAGE_SHAPE, image_path_list)
     predict_scores, predict_vertex, image_metas = m.predict_generator(generator=gen.gen(),
                                                                       steps=len(image_path_list),
                                                                       use_multiprocessing=True)
