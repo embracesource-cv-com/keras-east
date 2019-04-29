@@ -93,7 +93,8 @@ def east_net(config, stage='train'):
         # 距离和角度转为顶点坐标
         vertex = layers.Lambda(lambda x: dist_to_box(*x))([predict_geo_dist, predict_geo_angle])
         # dual image_meta
-        image_meta = layers.Lambda(lambda x: tf.identity(x))(input_image_meta)  # 原因返回
+        image_meta = layers.Lambda(lambda x: tf.identity(x))(input_image_meta)  # 原样返回
+        predict_score = layers.Lambda(lambda x: tf.nn.sigmoid(x))(predict_score)  # logit转为score
         return Model(inputs=[input_image, input_image_meta],
                      outputs=[predict_score, vertex, image_meta])
 
