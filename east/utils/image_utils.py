@@ -230,9 +230,11 @@ def recover_detect_polygons(polygons, window, scale):
     :param scale: 标量
     :return:
     """
+    if len(polygons) == 0:
+        return polygons
     # 去除padding
-    polygons[:, 1::2] -= window[0]  # 高度
-    polygons[:, 0::2] -= window[1]  # 宽度
+    polygons[:, :, 1] -= window[0]  # 高度
+    polygons[:, :, 0] -= window[1]  # 宽度
     # 还原缩放
     polygons /= scale
     return polygons
