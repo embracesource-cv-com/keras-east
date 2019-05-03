@@ -233,8 +233,8 @@ def clip_polygons(polygons, window):
         return polygons
     y1, x1, y2, x2 = window
     # 保证不越界
-    polygons[:, :, 1] = np.max(y1, np.min(y2, polygons[:, :, 1]))
-    polygons[:, :, 0] = np.max(x1, np.min(x2, polygons[:, :, 0]))
+    polygons[:, :, 1] = np.maximum(y1, np.minimum(y2, polygons[:, :, 1]))
+    polygons[:, :, 0] = np.maximum(x1, np.minimum(x2, polygons[:, :, 0]))
     return polygons
 
 
