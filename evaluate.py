@@ -44,13 +44,13 @@ def main(args):
     print("======完成{}张图像评估，耗时:{} 秒".format(len(image_path_list), end_time - start_time))
 
     # 后处理
-    predict_polygons = common_utils.relative_to_absolute(predict_vertex)  # 相对坐标转绝对坐标
     image_metas = image_utils.batch_parse_image_meta(image_metas)
 
     size = len(image_path_list)
     polygons_list = []
     scores_list = []
-    for p, s, win, scale in zip(np.reshape(predict_polygons, (size, -1, 4, 2)),
+    # 高度和宽度打平,逐个样本处理
+    for p, s, win, scale in zip(np.reshape(predict_vertex, (size, -1, 4, 2)),
                                 np.reshape(predict_scores, (size, -1)),
                                 image_metas['window'],
                                 image_metas['scale']):

@@ -39,8 +39,8 @@ def main(args):
     predict_scores, predict_vertex, image_metas = m.predict([np.array([image]), np.array([image_meta])])
 
     # 后处理
-    polygons = common_utils.relative_to_absolute(predict_vertex)[0]  # 相对坐标转绝对坐标
-    polygons *= 4  # 转为网络输入的大小
+
+    polygons = predict_vertex[0] * 4  # 转为网络输入的大小
     scores = predict_scores[0]
     # 高度和宽度打平
     polygons = np.reshape(polygons, (-1, 4, 2))

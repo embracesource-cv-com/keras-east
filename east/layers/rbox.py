@@ -18,7 +18,7 @@ def dist_to_box(distances, angles):
     y′=xsinθ+ycosθ
     :param distances: [batch_size,H,W,(dist_top,dist_right,dist_bottom,dist_left)]
     :param angles: [batch_size,H,W,1]
-    :return:
+    :return:rbox: [batch_size,H,W,4,(x,y)]
     """
     # 计算中心点偏移(旋转在矩形中心点进行)
     half_h = (distances[..., 0] + distances[..., 2]) / 2.
@@ -64,6 +64,18 @@ def dist_to_box(distances, angles):
     # 处理偏移
     new_x -= new_shift_x
     new_y -= new_shift_y
+
+    # 相对坐标转绝对坐标
+    shape = tf.shape(distances)  # (batch_size,H,W,4)
+    H, W = shape[1], shape[2]
+
+    ys = tf.range(H, dtype=tf.float32)  # [H]
+    ys = tf.expand_dims(tf.expand_dims(ys, axis=-1), axis=-1)  # [H,1,1]
+    xs = tf.range(W, dtype=tf.float32)  # [W]
+    xs = tf.expand_dims(xs, axis=-1)  # [W,1]
+
+    new_x += xs
+    new_y += ys
 
     rbox = tf.stack([new_x, new_y], axis=-1)  # [batch_size,H,W,4,2]
     return rbox

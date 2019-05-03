@@ -101,19 +101,19 @@ def locale_aware_nms(polygons, scores, threshold=0.3):
     return nms(keep_polygons, keep_scores, threshold)
 
 
-def relative_to_absolute(polygons):
-    """
-    将预测的相对坐标改为坐标
-    :param polygons: [batch,H,W,(top_left,top_right,bottom_right,bottom_left),(x,y)]
-    :return: polygons
-    """
-    # 相对距离转为坐标
-    shape = np.shape(polygons[0])  # (H,W,4,2)
-    # 高度
-    heights = np.arange(shape[0])
-    polygons[..., 1] += heights[np.newaxis, :, np.newaxis, np.newaxis]
-    # 宽度
-    weights = np.arange(shape[1])
-    polygons[..., 0] += weights[np.newaxis, np.newaxis, :, np.newaxis]
-
-    return polygons
+# def relative_to_absolute(polygons):
+#     """
+#     将预测的相对坐标改为坐标
+#     :param polygons: [batch,H,W,(top_left,top_right,bottom_right,bottom_left),(x,y)]
+#     :return: polygons
+#     """
+#     # 相对距离转为坐标
+#     shape = np.shape(polygons[0])  # (H,W,4,2)
+#     # 高度
+#     heights = np.arange(shape[0])
+#     polygons[..., 1] += heights[np.newaxis, :, np.newaxis, np.newaxis]
+#     # 宽度
+#     weights = np.arange(shape[1])
+#     polygons[..., 0] += weights[np.newaxis, np.newaxis, :, np.newaxis]
+#
+#     return polygons
