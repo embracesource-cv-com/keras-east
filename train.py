@@ -65,9 +65,9 @@ def main(args):
         m.load_weights(config.PRE_TRAINED_WEIGHT, by_name=True)
     m.summary()
     # 生成器
-    generator = Generator(config.IMAGE_SHAPE, image_annotations[-100:],
+    generator = Generator(config.IMAGE_SHAPE, image_annotations[:-100],
                           config.IMAGES_PER_GPU, config.TEXT_MIN_SIZE)
-    val_gen = Generator(config.IMAGE_SHAPE, image_annotations[:-100],
+    val_gen = Generator(config.IMAGE_SHAPE, image_annotations[-100:],
                         config.IMAGES_PER_GPU, config.TEXT_MIN_SIZE)
     # 训练
     m.fit_generator(generator.gen(),
