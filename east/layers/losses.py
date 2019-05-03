@@ -34,7 +34,7 @@ def iou_loss(y_true, y_pred, y_score, mask):
     # 只处理参与训练的部分
     mask = y_score * mask  # 正样本计算损失
     iou = tf.boolean_mask(iou, tf.cast(mask, tf.bool))
-    return -tf.log(iou)
+    return tf.reduce_mean(-tf.log(iou))
 
 
 def angle_loss(y_true, y_pred, y_score, mask):
@@ -48,7 +48,8 @@ def angle_loss(y_true, y_pred, y_score, mask):
     """
     loss = 1. - tf.cos(y_pred[..., 0] - y_true)
     mask = y_score * mask  # 正样本计算损失
-    return tf.boolean_mask(loss, tf.cast(mask, tf.bool))
+    loss = tf.boolean_mask(loss, tf.cast(mask, tf.bool))
+    return tf.reduce_mean(loss)
 
 
 def balanced_cross_entropy(y_true, logits, mask):
@@ -66,13 +67,25 @@ def balanced_cross_entropy(y_true, logits, mask):
     # 统计正负样本数
     pos_num = tf.minimum(tf.reduce_sum(y_true), 1.)  # 平滑
     neg_num = tf.minimum(tf.reduce_sum(1. - y_true), 1.)
-    total = pos_num + neg_num
-    # 正负样本权重
-    weights = tf.where(tf.equal(y_true, 1.),
-                       tf.ones_like(y_true) * neg_num / total,
-                       tf.ones_like(y_true) * pos_num / total)
-    # 计算损失函数
-    loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=y_true, logits=logits)
-    loss = loss * weights
 
-    return loss
+    # 计算损失函数
+    loss = tf.nn.weighted_cross_entropy_with_logits(targets=y_true, logits=logits, pos_weight=neg_num/pos_num)
+
+    return tf.reduce_mean(loss)
+
+
+def main():
+    sess = tf.Session()
+    x = tf.constant([])
+    y = tf.reduce_mean(x)
+    print(sess.run(y))
+    y_true = tf.constant([1., 1., 0])
+    logits = tf.constant([-10, -30000, 1000000.])
+    loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=y_true, logits=logits)
+    print(sess.run(loss))
+
+
+if __name__ == '__main__':
+    main()
+
+
