@@ -186,7 +186,7 @@ class Generator(object):
                 score_map[i], geo_map[i], mask[i] = gen_gt(h,
                                                            w,
                                                            polygons,
-                                                           self.min_text_size // 4.)
+                                                           self.min_text_size / 4.)
 
             yield {"input_image": images,
                    "input_score": score_map,
