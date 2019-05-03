@@ -25,7 +25,7 @@ def dist_to_box(distances, angles):
     half_w = (distances[..., 1] + distances[..., 3]) / 2.
     # 当前点相对于矩形框中心点的偏移
     shift_y = distances[..., 0] - half_h
-    shift_x = distances[..., 1] - half_w
+    shift_x = distances[..., 3] - half_w  # 左边距离
 
     # lt,rt,rb,lb
     x = tf.stack([half_w * -1.,  # lt
