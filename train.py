@@ -39,11 +39,11 @@ def get_call_back():
                                  period=5)
 
     # 验证误差没有提升
-    lr_reducer = ReduceLROnPlateau(monitor='loss',
+    lr_reducer = ReduceLROnPlateau(monitor='val_loss',
                                    factor=0.1,
                                    cooldown=0,
                                    patience=10,
-                                   min_lr=0)
+                                   min_lr=1e-5)
     log = TensorBoard(log_dir='log')
     return [lr_reducer, checkpoint, log]
 
@@ -60,21 +60,24 @@ def main(args):
     m = models.east_net(config, 'train')
     models.compile(m, config, loss_names=['score_loss', 'dist_loss', 'angle_loss'])
     if args.init_epochs > 0:
-        m.load_weights(args.weight_path, by_name=True)
+        m.load_weights('/tmp/east.{:03d}.h5'.format(args.init_epochs), by_name=True)
     else:
         m.load_weights(config.PRE_TRAINED_WEIGHT, by_name=True)
     m.summary()
     # 生成器
-    generator = Generator(config.IMAGE_SHAPE, image_annotations,
+    generator = Generator(config.IMAGE_SHAPE, image_annotations[-100:],
                           config.IMAGES_PER_GPU, config.TEXT_MIN_SIZE)
-
+    val_gen = Generator(config.IMAGE_SHAPE, image_annotations[:-100],
+                        config.IMAGES_PER_GPU, config.TEXT_MIN_SIZE)
     # 训练
     m.fit_generator(generator.gen(),
-                    steps_per_epoch=len(image_annotations) // config.IMAGES_PER_GPU,
+                    steps_per_epoch=generator.size // config.IMAGES_PER_GPU,
                     epochs=args.epochs,
                     initial_epoch=args.init_epochs,
                     verbose=True,
                     callbacks=get_call_back(),
+                    validation_data=val_gen.gen(),
+                    validation_steps=val_gen.size,
                     workers=2,
                     use_multiprocessing=True)
 
@@ -84,8 +87,7 @@ def main(args):
 
 if __name__ == '__main__':
     parse = argparse.ArgumentParser()
-    parse.add_argument("--epochs", type=int, default=50, help="epochs")
+    parse.add_argument("--epochs", type=int, default=100, help="epochs")
     parse.add_argument("--init_epochs", type=int, default=0, help="epochs")
-    parse.add_argument("--weight_path", type=str, default=None, help="weight path")
     argments = parse.parse_args(sys.argv[1:])
     main(argments)
