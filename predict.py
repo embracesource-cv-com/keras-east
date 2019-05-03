@@ -50,6 +50,10 @@ def main(args):
     polygons = polygons[ix]
     scores = scores[ix]
     polygons, scores = common_utils.locale_aware_nms(polygons, scores, 0.3)
+    # 裁剪到图像窗口内
+    image_meta = image_utils.parse_image_meta(image_meta)
+    window = image_meta['window']
+    polygons = image_utils.clip_polygons(polygons, window)
 
     # 可视化保存图像
     fig = plt.figure(figsize=(8, 8))

@@ -222,6 +222,22 @@ def recover_detect_boxes(boxes, window, scale):
     return boxes
 
 
+def clip_polygons(polygons, window):
+    """
+        将检测四边形映射到原始图像上，去除padding和缩放
+        :param polygons: numpy数组，[n,4,(x,y)]
+        :param window: [(y1,x1,y2,x2)]
+        :return:
+    """
+    if len(polygons) == 0:
+        return polygons
+    y1, x1, y2, x2 = window
+    # 保证不越界
+    polygons[:, :, 1] = np.max(y1, np.min(y2, polygons[:, :, 1]))
+    polygons[:, :, 0] = np.max(x1, np.min(x2, polygons[:, :, 0]))
+    return polygons
+
+
 def recover_detect_polygons(polygons, window, scale):
     """
     将检测四边形映射到原始图像上，去除padding和缩放
@@ -232,10 +248,7 @@ def recover_detect_polygons(polygons, window, scale):
     """
     if len(polygons) == 0:
         return polygons
-    y1, x1, y2, x2 = window
-    # 保证不越界
-    polygons[:, :, 1] = np.max(y1, np.min(y2, polygons[:, :, 1]))
-    polygons[:, :, 0] = np.max(x1, np.min(x2, polygons[:, :, 0]))
+    clip_polygons(polygons, window)
     # 去除padding
     polygons[:, :, 1] -= window[0]  # 高度
     polygons[:, :, 0] -= window[1]  # 宽度
