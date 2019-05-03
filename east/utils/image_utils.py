@@ -68,8 +68,8 @@ def random_crop_image(image, gt_window):
     """
     h, w = list(image.shape)[:2]
     y1, x1, y2, x2 = gt_window
-    # 每边最多裁剪1/20
-    crop_ratio = 0.05
+    # 每边最多裁剪1/10
+    crop_ratio = 0.1
     wy1 = np.random.randint(min(y1 + 1, h * crop_ratio))
     wx1 = np.random.randint(min(x1 + 1, w * crop_ratio))
     wy2 = h - np.random.randint(min(h - y2 + 1, h * crop_ratio))
