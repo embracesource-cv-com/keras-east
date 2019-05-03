@@ -28,7 +28,7 @@ def main(args):
     config.IMAGES_PER_GPU = 1
     # config.IMAGE_SHAPE = (1024, 1024, 3)
     # 图像路径
-    image_path_list = file_utils.get_sub_files(args.image_dir)[:50]
+    image_path_list = file_utils.get_sub_files(args.image_dir)
 
     # 加载模型
     m = models.east_net(config, 'test')
@@ -54,12 +54,15 @@ def main(args):
                                 np.reshape(predict_scores, (size, -1)),
                                 image_metas['window'],
                                 image_metas['scale']):
-        # polygons, scores = common_utils.locale_aware_nms(np.reshape(p, (-1, 4, 2)),
-        #                                                  np.reshape(s, (-1,)), 0.3)  # nms'
-        polys = lanms.merge_quadrangle_n9(np.concatenate([np.reshape(p, (-1, 8)),
-                                                          s[:, np.newaxis]], axis=1), 0.3)
-        polygons = np.reshape(polys[:, :8], (-1, 4, 2))
-        scores = polys[:, 8]
+        # 过滤低分值多边形
+        ix = np.where(s >= 0.5)
+        p = p[ix]
+        s = s[ix]
+        polygons, scores = common_utils.locale_aware_nms(p, s, 0.3)  # nms'
+        # polys = lanms.merge_quadrangle_n9(np.concatenate([np.reshape(p, (-1, 8)),
+        #                                                  s[:, np.newaxis]], axis=1), 0.3)
+        # polygons = np.reshape(polys[:, :8], (-1, 4, 2))
+        # scores = polys[:, 8]
         polygons *= 4  # 转为网络输入的大小
         # 还原检测边框到原图
         polygons = image_utils.recover_detect_polygons(polygons, win, scale)
@@ -80,6 +83,7 @@ def main(args):
                                                              poly[2][1],
                                                              poly[3][0],
                                                              poly[3][1]))
+    print("======总耗时:{} 秒".format(datetime.datetime.now() - start_time))
 
 
 if __name__ == '__main__':
