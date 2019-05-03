@@ -69,9 +69,9 @@ def dist_to_box(distances, angles):
     shape = tf.shape(distances)  # (batch_size,H,W,4)
     H, W = shape[1], shape[2]
 
-    ys = tf.range(H, dtype=tf.float32)  # [H]
+    ys = tf.range(0., H)  # [H]
     ys = tf.expand_dims(tf.expand_dims(ys, axis=-1), axis=-1)  # [H,1,1]
-    xs = tf.range(W, dtype=tf.float32)  # [W]
+    xs = tf.range(0., W)  # [W]
     xs = tf.expand_dims(xs, axis=-1)  # [W,1]
 
     new_x += xs
