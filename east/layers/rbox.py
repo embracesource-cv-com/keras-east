@@ -20,16 +20,23 @@ def dist_to_box(distances, angles):
     :param angles: [batch_size,H,W,1]
     :return:
     """
+    # 计算中心点偏移(旋转在矩形中心点进行)
+    half_h = (distances[..., 0] + distances[..., 2]) / 2.
+    half_w = (distances[..., 1] + distances[..., 3]) / 2.
+    # 当前点相对于矩形框中心点的偏移
+    shift_y = distances[..., 0] - half_h
+    shift_x = distances[..., 1] - half_w
+
     # lt,rt,rb,lb
-    x = tf.stack([distances[..., 3] * -1.,  # lt
-                  distances[..., 1],  # rt
-                  distances[..., 1],  # rb
-                  distances[..., 3] * -1.], axis=-1)  # lb; [batch_size,H,W,4]
+    x = tf.stack([half_w * -1.,  # lt
+                  half_w,  # rt
+                  half_w,  # rb
+                  half_w * -1.], axis=-1)  # lb; [batch_size,H,W,4]
     # lt,rt,rb,lb
-    y = tf.stack([distances[..., 0] * -1,
-                  distances[..., 0] * -1,
-                  distances[..., 2],
-                  distances[..., 2]], axis=-1)  # [batch_size,H,W,4]
+    y = tf.stack([half_h * -1,
+                  half_h * -1,
+                  half_h,
+                  half_h], axis=-1)  # [batch_size,H,W,4]
     # 角度约束到0~90
     angles = angles[..., 0]  # 去除最后一维
     angles = tf.where(tf.less(angles, 0.), tf.zeros_like(angles), angles)
@@ -42,11 +49,21 @@ def dist_to_box(distances, angles):
                       -angles)
     # 扩维[batch_size,H,W,1]
     angles = tf.expand_dims(angles, axis=-1)
-    # 旋转后的新坐标
+    # 旋转后的顶点新坐标
     cos = tf.cos(angles)
     sin = tf.sin(angles)
     new_x = x * cos - y * sin  # [batch_size,H,W,4]
     new_y = x * sin + y * cos  # [batch_size,H,W,4]
+
+    # 旋转后当前点坐标
+    shift_x = tf.expand_dims(shift_x, axis=-1)
+    shift_y = tf.expand_dims(shift_y, axis=-1)
+    new_shift_x = shift_x * cos - shift_y * sin
+    new_shift_y = shift_x * sin + shift_y * cos
+
+    # 处理偏移
+    new_x -= new_shift_x
+    new_y -= new_shift_y
 
     rbox = tf.stack([new_x, new_y], axis=-1)  # [batch_size,H,W,4,2]
     return rbox
