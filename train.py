@@ -20,7 +20,7 @@ from east.preprocess import reader
 
 
 def set_gpu_growth():
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     cfg = tf.ConfigProto()
     cfg.gpu_options.allow_growth = True
     session = tf.Session(config=cfg)
@@ -33,9 +33,10 @@ def get_call_back():
     :return:
     """
     checkpoint = ModelCheckpoint(filepath='/tmp/east.{epoch:03d}.h5',
-                                 monitor='acc',
+                                 monitor='val_loss',
                                  verbose=1,
-                                 save_best_only=False,
+                                 save_best_only=True,
+                                 save_weights_only=True,
                                  period=5)
 
     # 验证误差没有提升
@@ -66,9 +67,10 @@ def main(args):
     m.summary()
     # 生成器
     generator = Generator(config.IMAGE_SHAPE, image_annotations[:-100],
-                          config.IMAGES_PER_GPU, config.TEXT_MIN_SIZE)
+                          config.IMAGES_PER_GPU, config.TEXT_MIN_SIZE,
+                          True, True)
     val_gen = Generator(config.IMAGE_SHAPE, image_annotations[-100:],
-                        config.IMAGES_PER_GPU, config.TEXT_MIN_SIZE)
+                        config.IMAGES_PER_GPU, config.TEXT_MIN_SIZE,)
     # 训练
     m.fit_generator(generator.gen(),
                     steps_per_epoch=generator.size // config.IMAGES_PER_GPU,
@@ -77,9 +79,7 @@ def main(args):
                     verbose=True,
                     callbacks=get_call_back(),
                     validation_data=val_gen.gen(),
-                    validation_steps=val_gen.size,
-                    workers=2,
-                    use_multiprocessing=True)
+                    validation_steps=val_gen.size // config.IMAGES_PER_GPU)
 
     # 保存模型
     m.save(config.WEIGHT_PATH)

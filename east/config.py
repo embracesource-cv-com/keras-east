@@ -8,16 +8,16 @@
 
 
 class Config(object):
-    IMAGES_PER_GPU = 2
-    IMAGE_SHAPE = (800, 800, 3)
+    IMAGES_PER_GPU = 4
+    IMAGE_SHAPE = (640, 640, 3)
     TEXT_MIN_SIZE = 10
 
     # 训练超参数
-    LEARNING_RATE = 0.01
+    LEARNING_RATE = 0.001
     LEARNING_MOMENTUM = 0.9
     # 权重衰减
     WEIGHT_DECAY = 0.0005,
-    GRADIENT_CLIP_NORM = 5.0
+    GRADIENT_CLIP_NORM = 1.0
 
     LOSS_WEIGHTS = {
         "score_loss": 1.,

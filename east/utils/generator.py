@@ -208,6 +208,7 @@ class EvaluateGenerator(object):
         """
         self.input_shape = input_shape
         self.image_path_list = image_path_list
+        self.size = len(image_path_list)
 
     def gen(self):
         """

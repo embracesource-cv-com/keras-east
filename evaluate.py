@@ -17,7 +17,6 @@ from east.utils.generator import EvaluateGenerator
 from east.config import cur_config as config
 from east.layers import models
 import datetime
-import lanms
 
 
 def main(args):
