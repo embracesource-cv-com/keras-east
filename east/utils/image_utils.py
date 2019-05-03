@@ -232,6 +232,10 @@ def recover_detect_polygons(polygons, window, scale):
     """
     if len(polygons) == 0:
         return polygons
+    y1, x1, y2, x2 = window
+    # 保证不越界
+    polygons[:, :, 1] = np.max(y1, np.min(y2, polygons[:, :, 1]))
+    polygons[:, :, 0] = np.max(x1, np.min(x2, polygons[:, :, 0]))
     # 去除padding
     polygons[:, :, 1] -= window[0]  # 高度
     polygons[:, :, 0] -= window[1]  # 宽度
