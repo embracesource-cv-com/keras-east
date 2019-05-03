@@ -43,11 +43,12 @@ def nms(polygons, scores, iou_threshold=0.3):
     # 保留的索引号
     keep_indices = []
 
-    while order_indices.size > 0:
+    while len(order_indices) > 0:
         keep_indices.append(order_indices[0])  # 保留当前分值最大的polygon
         # 计算当前polygon与其他所有polygon的iou值
         ious = [poly_iou(polygons[order_indices[0]], polygons[i]) for i in order_indices[1:]]
         order_indices = order_indices[1:][np.array(ious) < iou_threshold]
+        # print("order_indices.shape:{}".format(order_indices.shape))
     # 返回保留的索引号
     return polygons[keep_indices], scores[keep_indices]
 
@@ -55,8 +56,8 @@ def nms(polygons, scores, iou_threshold=0.3):
 def poly_weighted_merge(poly_a, poly_b, score_a, score_b):
     """
     多边形加权合并
-    :param poly_a:[n,4,(x,y)]
-    :param poly_b:[n,4,(x,y)]
+    :param poly_a:[4,(x,y)]
+    :param poly_b:[4,(x,y)]
     :param score_a:标量
     :param score_b:标量
     :return:
@@ -94,17 +95,19 @@ def locale_aware_nms(polygons, scores, threshold=0.3):
     # 转为numpy
     keep_polygons = np.array(keep_polygons)
     keep_scores = np.array(keep_scores)
-
-    return keep_polygons, keep_scores if keep_scores.size == 0 \
-        else nms(keep_polygons, keep_scores, threshold)
+    # print("keep_polygons:{}\n,keep_scores:{}".format(keep_polygons, keep_scores))
+    if len(keep_scores) == 0:
+        return keep_polygons, keep_scores
+    return nms(keep_polygons, keep_scores, threshold)
 
 
 def relative_to_absolute(polygons):
     """
-    将预测的相对坐标改为决定坐标
-    :param polygons: [batch,H,W,4,(x,y)]
+    将预测的相对坐标改为坐标
+    :param polygons: [batch,H,W,(top_left,top_right,bottom_right,bottom_left),(x,y)]
     :return: polygons
     """
+    # 相对距离转为坐标
     shape = np.shape(polygons[0])  # (H,W,4,2)
     # 高度
     heights = np.arange(shape[0])
